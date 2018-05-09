@@ -43,15 +43,15 @@
 			$trainQuery->bindParam(':q', $data['question']);
 			$trainQuery->bindParam(':a', $data['answer']);
 			$trainQuery->execute();
-			$bot = "Thanks for helping me be better.";
+			$bot = botAnswer("Thanks for helping me be better.");
 
 		}elseif($rows !== 0){
-			$bot = "I already know how to do that. You can ask me a new question, or teach me something else. Remember, the format is train: question # answer # password";
+			$bot = botAnswer("I already know how to do that. You can ask me a new question, or teach me something else. Remember, the format is train: question # answer # password");
 		}
 		echo $bot;
 	}
 	if($_SERVER['REQUEST_METHOD'] === 'POST'){ 
-		echo $_POST['question'];
+		
 	
 	 	$userInput = strtolower(trim($_POST['question']));
 	 	if(isset($userInput)){
@@ -68,28 +68,30 @@
 	 			$bot = train($conn, $data);
 	 			//array_push($_SESSION['chat-log'] , $bot);
 	 		}else{
-	 			$bot = "You have entered a wrong password. Let's try that again with the right password, shall we?";
+	 			$bot = botAnswer("You have entered a wrong password. Let's try that again with the right password, shall we?");
 	 			//array_push($_SESSION['chat-log'] , $bot);
 	 		}
 	 		
 	 	}elseif($userInput === 'about' || $userInput === 'aboutbot'){
-	 		$bot = "Version 1.0";
+	 		$bot = botAnswer("Version 1.0");
      		//array_push($_SESSION['chat-log'] , $bot);
 	 	}else{
 			 $userInputQuery = $conn->query("SELECT * FROM chatbot WHERE questions like '".$userInput."' ");
 		     $userInputs = $userInputQuery->fetchAll(PDO::FETCH_ASSOC);
 		    $userInputRows = $userInputQuery->rowCount();
 		     if($userInputRows == 0){
-		     	$bot = "I am unable to answer your question right now. But you can train me to answer this particular question. Use the format train: question #answer #password";
+		     	$bot = botAnswer("I am unable to answer your question right now. But you can train me to answer this particular question. Use the format train: question #answer #password");
 		     //	array_push($_SESSION['chat-log'] , $bot);
 
 		     }else{
-		     	$bot = $userInputs[rand(0, count($userInputs)-1)]['answers'];
-		     	//$bot = botAnswer($botAnswer);
+		     	$botAnswer = $userInputs[rand(0, count($userInputs)-1)]['answers'];
+		     	$bot = botAnswer($botAnswer);
 		     	//array_push($_SESSION['chat-log'] , botAnswer($botAnswer));
 		     }
      	}
      	echo $bot;
+
+     	exit;
 	}
 
 ?>
@@ -271,15 +273,14 @@
 		   
 			xhttp.onreadystatechange = function() {
 	          if(this.readyState == 4 && this.status == 200) {
-	          	 userChat(question.value);
+	          	 userChat(question.value, this.response);
 	          	 //  var response = JSON.parse(this.responseText);
 	          	 //chatContent.innerHTML = this.responseText;
-	          	 e.preventDefault();
      			console.log(this.response);
      			e.preventDefault();
 	          	 // console.log(response);
 	          	//var response = xhttp.responseText;
-	            // userChat(response);
+           // messageArea.scrollTop = messageArea.scrollHeight;
 	            // question.value = xhttp.responseText;
 	            question.value = '';
 	          }
@@ -290,7 +291,7 @@
         e.preventDefault();
 		}
 
-		function userChat(chats){
+		function userChat(chats, reply){
 			// if(chats === ''){
 			// 	var chat = '' ;
 			if(question.value !== ''){
@@ -299,11 +300,15 @@
 				<p class="chat-message" id="user">` + chats + `</p>
 				</div>`;
 			
-		    chatContent.innerHTML += chat;	
-				
+		    chatContent.innerHTML += chat;
+		    
+		    setTimeout(function() {
+			    chatContent.innerHTML += reply;	
+			}, 500);
 			}
 
 		}
+		
 	</script>
 	</script>
 </body>
